@@ -1,0 +1,11 @@
+﻿Do these one by one in the Package Manager Console:
+
+
+
+Install-Package Microsoft.EntityFrameworkCore.Tools 
+
+Install-Package Microsoft.EntityFrameworkCore
+
+Install-Package Microsoft.EntityFrameworkCore.SqlServer
+
+Scaffold-DbContext "Server=(localdb)\MSSQLLocalDB;Database=ECommerce;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models
