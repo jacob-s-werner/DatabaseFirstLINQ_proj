@@ -20,9 +20,9 @@ namespace DatabaseFirstLINQ
             //ProblemThree();
             //ProblemFour();
             //ProblemFive();
-            ProblemSix();
+            //ProblemSix();
             //ProblemSeven();
-            //ProblemEight();
+            ProblemEight();
             //ProblemNine();
             //ProblemTen();
             //ProblemEleven();
@@ -124,7 +124,18 @@ namespace DatabaseFirstLINQ
         {
             // Write a LINQ query that retreives all of the products in the shopping cart of the user who has the email "afton@gmail.com".
             // Then print the product's name, price, and quantity to the console.
+            int userAftonID = _context.Users.Where(user => user.Email == "afton@gmail.com").Select(user => user.Id).ToList()[0]; //user with email, shoppingcart
+            var productsList = _context.Products.Join(_context.ShoppingCarts.Where(cart => cart.UserId == userAftonID), 
+                product => product.Id, cart => cart.Product.Id, (product, cart) => new { name = product.Name, price = product.Price, quantity = cart.Quantity });
 
+
+
+            foreach (var product in productsList)
+            {
+                Console.WriteLine($" Product Name: {product.name} - Price = ${product.price} - Quantity = {product.quantity}");
+            }
+            // we have the list of shopping carts<carts> for each seperate productID, we want name and price of the product that matches the productID
+            //
         }
 
         private void ProblemNine()
