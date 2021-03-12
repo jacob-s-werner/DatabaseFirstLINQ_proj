@@ -23,8 +23,8 @@ namespace DatabaseFirstLINQ
             //ProblemSix();
             //ProblemSeven();
             //ProblemEight();
-            ProblemNine();
-            //ProblemTen();
+            //ProblemNine();
+            ProblemTen();
             //ProblemEleven();
             //ProblemTwelve();
             //ProblemThirteen();
@@ -74,7 +74,7 @@ namespace DatabaseFirstLINQ
         {
             // Write a LINQ query that gets each product that contains an "s" in the products name.
             // Then print the name of each product from the above query to the console.
-            var products = _context.Products.Where(p => p.Name.Contains("s")).Select(p => p.Name);
+            var products = _context.Products.Where(p => p.Name.ToLower().Contains("s")).Select(p => p.Name);
             foreach (string name in products)
             {
                 Console.WriteLine($"{name} contains an \"s\"");
@@ -153,7 +153,17 @@ namespace DatabaseFirstLINQ
         {
             // Write a LINQ query that retreives all of the products in the shopping cart of users who have the role of "Employee".
             // Then print the user's email as well as the product's name, price, and quantity to the console.
+            var employeeMatchingRoleID = _context.Roles.Where(role => role.RoleName == "Employee").Select(role => role.Id).ToList()[0];
+            var employeeUserIDs = _context.UserRoles.Where(user => user.RoleId == employeeMatchingRoleID).Select(user => user.UserId).ToList();
+            var productsList = _context.Products.Join(
+                _context.ShoppingCarts.Join(_context.Users.Where(user => employeeUserIDs.Contains(user.Id)), c => c.UserId, user => user.Id,
+                (c, user) => new { email = user.Email, Product = c.Product, ProductID = c.ProductId, Quantity = c.Quantity }),
+                product => product.Id, cart => cart.Product.Id, (product, cart) => new { email = cart.email, name = product.Name, price = product.Price, quantity = cart.Quantity });
 
+            foreach (var product in productsList)
+            {
+                Console.WriteLine($"User Email:{product.email} Product Name: {product.name} - Price = ${product.price} - Quantity = {product.quantity}");
+            }
         }
 
         // <><><><><><><><> CUD (Create, Update, Delete) Actions <><><><><><><><><>
