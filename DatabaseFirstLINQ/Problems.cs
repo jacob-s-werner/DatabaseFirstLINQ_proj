@@ -37,7 +37,8 @@ namespace DatabaseFirstLINQ
             //ProblemNineteen();
             //ProblemTwenty();
             //BonusOne();
-            BonusTwo();
+            //BonusTwo();
+            BonusThree();
         }
 
         // <><><><><><><><> R Actions (Read) <><><><><><><><><>
@@ -343,17 +344,129 @@ namespace DatabaseFirstLINQ
         private void BonusThree()
         {
             // 1. Create functionality for a user to sign in via the console
+            string userEmailInput, userPasswordInput;
+
+            Console.WriteLine("Enter your email below: ");
+            userEmailInput = Console.ReadLine();
+            Console.WriteLine("Password: ");
+            userPasswordInput = Console.ReadLine();
+
+            var userMatch = _context.Users.Where(user => user.Email.Equals(userEmailInput) && user.Password.Equals(userPasswordInput)).ToList();
+            
+            if (userMatch.Count == 0)
+            {
+                Console.WriteLine("\n Invalid Email or Password.");
+                BonusThree();
+            }
+            else
+            {
+                Console.WriteLine("Signed In!");
+            }
             // 2. If the user succesfully signs in
             // a. Give them a menu where they perform the following actions within the console
             // View the products in their shopping cart
             // View all products in the Products table
             // Add a product to the shopping cart (incrementing quantity if that product is already in their shopping cart)
             // Remove a product from their shopping cart
+            
             // 3. If the user does not succesfully sing in
             // a. Display "Invalid Email or Password"
             // b. Re-prompt the user for credentials
+            Console.WriteLine("Enter the following number for the action wanted;");
+            Console.WriteLine("1: View the products in your shopping cart");
+            Console.WriteLine("2: View products available");
+            Console.WriteLine("0: EXIT");
+            string userMenuChoice = Console.ReadLine();
+
+            if (userMenuChoice == "1")
+            {
+                
+                var productsList = _context.Products.Join(_context.ShoppingCarts.Where(cart => cart.UserId == userMatch[0].Id),
+                    product => product.Id, cart => cart.Product.Id, (product, cart) => new { name = product.Name, price = product.Price, quantity = cart.Quantity });
+                Console.WriteLine("The products in your cart are;");
+                foreach (var product in productsList)
+                {
+                    Console.WriteLine($" Product Name: {product.name} - Price = ${product.price} - Quantity = {product.quantity}");
+                }
+
+                Console.WriteLine("Would you like to remove an item? (y/n)");
+
+            }
+            else if (userMenuChoice == "2")
+            {
+                Console.WriteLine("The products available to purchase are;");
+                var productsWithTheirPrices = _context.Products.Select(product => product);
+
+                foreach (var product in productsWithTheirPrices)
+                {
+                    Console.WriteLine($"{product.Id}: Product name: {product.Name} - price = ${product.Price}");
+                }
+                Console.WriteLine("Type the item number you want to add: (Enter 0 to EXIT");
+                string userProductInput = Console.ReadLine();
+                int productIDNumber = -1;
+
+                if (userProductInput == "0")
+                {
+
+                }
+                else
+                {
+                    if (Int32.TryParse(userProductInput, out productIDNumber))
+                    {
+                        AddProductToCart(userMatch[0].Id, productIDNumber);
+                        _context.SaveChanges();
+                    }
+                }
+            }
+            else if (userMenuChoice == "0")
+            {
+
+            }
+        }
+        public void AddProductToCart(int userID, int productID)
+        {
+            var productToAdd = _context.ShoppingCarts.Where(cart => cart.UserId == userID && cart.ProductId == productID).ToList();
+
+            if (productToAdd.Count == 0)
+            {
+                ShoppingCart newShoppingCart = new ShoppingCart()
+                {
+                    UserId = userID,
+                    ProductId = productID,
+                    Quantity = 1
+                };
+                _context.ShoppingCarts.Add(newShoppingCart);
+                _context.SaveChanges();
+            }
+            else
+            {
+                
+                int newQuantity = RemoveProductFromCart(userID, productID, true);
+               
+                ShoppingCart existingShoppingCart = new ShoppingCart()
+                {
+                    UserId = userID,
+                    ProductId = productID,
+                    Quantity = newQuantity
+                };
+                _context.ShoppingCarts.Add(existingShoppingCart);
+                _context.SaveChanges();
+            }
 
         }
+        public int RemoveProductFromCart(int userID, int productID, bool add = false)
+        {
+            List<ShoppingCart> productToRemove = _context.ShoppingCarts.Where(cart => cart.UserId == userID && cart.ProductId == productID).ToList();
+            int originalQuantity = productToRemove[0].Quantity.GetValueOrDefault();
+            _context.ShoppingCarts.Remove(productToRemove[0]);
 
+            if (add == true)
+            {
+                originalQuantity++;
+                return originalQuantity;
+            }
+            originalQuantity--;
+            return originalQuantity;
+        }
     }
 }
