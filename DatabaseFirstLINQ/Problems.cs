@@ -25,7 +25,7 @@ namespace DatabaseFirstLINQ
             //ProblemSeven();
             //ProblemEight();
             //ProblemNine();
-            //ProblemTen();
+            ProblemTen();
             //ProblemEleven();
             //ProblemTwelve();
             //ProblemThirteen();
@@ -161,8 +161,8 @@ namespace DatabaseFirstLINQ
             var employeeUserIDs = _context.UserRoles.Where(user => user.RoleId == employeeMatchingRoleID).Select(user => user.UserId).ToList();
             var productsList = _context.Products.Join(
                 _context.ShoppingCarts.Join(_context.Users.Where(user => employeeUserIDs.Contains(user.Id)), c => c.UserId, user => user.Id,
-                (c, user) => new { email = user.Email, Product = c.Product, ProductID = c.ProductId, Quantity = c.Quantity }),
-                product => product.Id, cart => cart.Product.Id, (product, cart) => new { email = cart.email, name = product.Name, price = product.Price, quantity = cart.Quantity });
+                (c, user) => new { email = user.Email, ProductID = c.ProductId, Quantity = c.Quantity }),
+                product => product.Id, cart => cart.ProductID, (product, cart) => new { email = cart.email, name = product.Name, price = product.Price, quantity = cart.Quantity });
 
             foreach (var product in productsList)
             {
@@ -396,7 +396,7 @@ namespace DatabaseFirstLINQ
         public void ShoppingCartMenu(User user)
         {
             var productsList = _context.Products.Join(_context.ShoppingCarts.Where(cart => cart.UserId == user.Id),
-                    product => product.Id, cart => cart.Product.Id, (product, cart) => new { pid = cart.ProductId, name = product.Name, price = product.Price, quantity = cart.Quantity });
+                    product => product.Id, cart => cart.ProductId, (product, cart) => new { pid = cart.ProductId, name = product.Name, price = product.Price, quantity = cart.Quantity });
             Console.WriteLine("The products in your cart are;");
             foreach (var product in productsList)
             {
