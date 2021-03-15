@@ -130,7 +130,7 @@ namespace DatabaseFirstLINQ
             // Then print the product's name, price, and quantity to the console.
             int userAftonID = _context.Users.Where(user => user.Email == "afton@gmail.com").Select(user => user.Id).ToList()[0]; //user with email, shoppingcart
             var productsList = _context.Products.Join(_context.ShoppingCarts.Where(cart => cart.UserId == userAftonID), 
-                product => product.Id, cart => cart.Product.Id, (product, cart) => new { name = product.Name, price = product.Price, quantity = cart.Quantity });
+                product => product.Id, cart => cart.ProductId, (product, cart) => new { name = product.Name, price = product.Price, quantity = cart.Quantity });
 
 
 
@@ -149,7 +149,7 @@ namespace DatabaseFirstLINQ
             // Then print the total of the shopping cart to the console.
             int userOdaID = _context.Users.Where(user => user.Email == "oda@gmail.com").Select(user => user.Id).ToList()[0]; //user with email, shoppingcart
             var totalCost = _context.Products.Join(_context.ShoppingCarts.Where(cart => cart.UserId == userOdaID),
-                product => product.Id, cart => cart.Product.Id, (product, cart) => new { price = product.Price, quantity = cart.Quantity }).Select(sc => sc.price).Sum();
+                product => product.Id, cart => cart.ProductId, (product, cart) => new { price = product.Price, quantity = cart.Quantity }).Select(sc => sc.price).Sum();
             Console.WriteLine($"Total price is ${totalCost}");
         }
 
