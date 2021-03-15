@@ -382,14 +382,33 @@ namespace DatabaseFirstLINQ
             {
                 
                 var productsList = _context.Products.Join(_context.ShoppingCarts.Where(cart => cart.UserId == userMatch[0].Id),
-                    product => product.Id, cart => cart.Product.Id, (product, cart) => new { name = product.Name, price = product.Price, quantity = cart.Quantity });
+                    product => product.Id, cart => cart.Product.Id, (product, cart) => new { pid = cart.ProductId, name = product.Name, price = product.Price, quantity = cart.Quantity });
                 Console.WriteLine("The products in your cart are;");
                 foreach (var product in productsList)
                 {
-                    Console.WriteLine($" Product Name: {product.name} - Price = ${product.price} - Quantity = {product.quantity}");
+                    Console.WriteLine($"{product.pid}: Product Name: {product.name} - Price = ${product.price} - Quantity = {product.quantity}");
                 }
-
+                
                 Console.WriteLine("Would you like to remove an item? (y/n)");
+                if (Console.ReadLine() == "y")
+                {
+                    Console.WriteLine("Please enter the product id to remove, or 0 to go back to previous step");
+                    string userProductInput = Console.ReadLine();
+                    int productIDNumber = -1;
+
+                    if (userProductInput == "0")
+                    {
+
+                    }
+                    else
+                    {
+                        if (Int32.TryParse(userProductInput, out productIDNumber))
+                        {
+                            AddProductToCart(userMatch[0].Id, productIDNumber, true);
+                            _context.SaveChanges();
+                        }
+                    }
+                }
 
             }
             else if (userMenuChoice == "2")
@@ -423,7 +442,7 @@ namespace DatabaseFirstLINQ
 
             }
         }
-        public void AddProductToCart(int userID, int productID)
+        public void AddProductToCart(int userID, int productID, bool removeOne=false)
         {
             var productToAdd = _context.ShoppingCarts.Where(cart => cart.UserId == userID && cart.ProductId == productID).ToList();
 
@@ -441,7 +460,7 @@ namespace DatabaseFirstLINQ
             else
             {
                 
-                int newQuantity = RemoveProductFromCart(userID, productID, true);
+                int newQuantity = RemoveProductFromCart(userID, productID, !removeOne);
                
                 ShoppingCart existingShoppingCart = new ShoppingCart()
                 {
@@ -449,7 +468,17 @@ namespace DatabaseFirstLINQ
                     ProductId = productID,
                     Quantity = newQuantity
                 };
-                _context.ShoppingCarts.Add(existingShoppingCart);
+                if (!removeOne)
+                {
+                    _context.ShoppingCarts.Add(existingShoppingCart);
+                }
+                else
+                {
+                    if (newQuantity > 0)
+                    {
+                        _context.ShoppingCarts.Add(existingShoppingCart);
+                    }
+                }
                 _context.SaveChanges();
             }
 
